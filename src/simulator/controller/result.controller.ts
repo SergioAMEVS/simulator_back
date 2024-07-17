@@ -31,6 +31,9 @@ export class ApplyController {
   @Get('cache-keys')
   async getCacheKeys(): Promise<any> {
     const keys = await this.cacheManager.get('cache-keys');
+    if (!keys) {
+      console.log('Cache is empty');
+    }
     return keys;
   }
 
