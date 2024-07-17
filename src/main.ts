@@ -1,14 +1,35 @@
+// import { NestFactory } from '@nestjs/core';
+// import { AppModule } from './app.module';
+
+// async function bootstrap() {
+//   const app = await NestFactory.create(AppModule, { cors: true });
+//   app.setGlobalPrefix(process.env.BASE_URL);
+//   await app.listen(3000);
+// }
+// bootstrap();
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { Controller, Get, Res } from '@nestjs/common';
+
+@Controller()
+export class AppController {
+  @Get('*')
+  redirect(@Res() res) {
+    res.redirect('/ciscolifecycle');
+  }
+}
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
-  app.setGlobalPrefix(process.env.BASE_URL);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useStaticAssets(join(__dirname, 'public'), {
+    prefix: '/ciscolifecycle/',
+  });
   await app.listen(3000);
 }
 bootstrap();
-
-
 // import { NestFactory } from '@nestjs/core';
 // import { AppModule } from './app.module';
 // import { join } from 'path';
