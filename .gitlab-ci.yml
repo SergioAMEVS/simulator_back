@@ -1,0 +1,45 @@
+stages:
+  - build
+  - deploy
+
+docker-build:
+  stage: build
+  environment: production
+  script:
+    - echo "building docker image"
+    - docker build -t registry.breweryda.com/cisco-lifecycle-backend:latest .
+  only:
+    refs:
+      - main
+    variables:
+      - $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"
+
+registry-push:
+  stage: build
+  needs: [docker-build]
+  environment: production
+  script:
+    - echo "pushing docker image to registry"
+    - docker push registry.breweryda.com/cisco-lifecycle-backend:latest
+  only:
+    refs:
+      - main
+    variables:
+      - $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"
+
+swarm-deploy:
+  stage: deploy
+  environment: production
+  needs: [registry-push]
+  script:
+    - echo "deploying service"
+    - echo $DB_USER
+    - docker stack rm cisco-lifecycle-backend
+    - docker stack deploy -c docker-compose.yml --with-registry-auth cisco-lifecycle-backend
+    - docker service ls
+    - docker service logs cisco-lifecycle-backend_node
+  only:
+    refs:
+      - main
+    variables:
+      - $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"

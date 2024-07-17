@@ -1,0 +1,57 @@
+services:
+  node:
+    image: registry.breweryda.com/cisco-lifecycle-backend:latest
+    deploy:
+      placement:
+        constraints:
+          - 'node.labels.work-type==projects'
+          # - "node.hostname==burrito"
+      replicas: 1
+      resources:
+        limits:
+          cpus: '4'
+          memory: '4g'
+
+      labels:
+        # Trafik config
+        traefik.enable: 'true'
+        ## Services
+        traefik.http.services.lifecycle_backend.loadbalancer.server.port: 3000
+        ## middleware
+        traefik.http.middlewares.lifecycle_backend_redirect.redirectscheme.scheme: https
+        ## HTTPS router
+        traefik.http.routers.lifecycle_backend.rule: Host(`staging.breweryda.com`) && PathPrefix(`/ciscolifecycle/api`)
+        traefik.http.routers.lifecycle_backend.entryPoints: websecure
+        traefik.http.routers.lifecycle_backend.tls.certResolver: default
+        traefik.http.routers.lifecycle_backend.service: lifecycle_backend
+        ## HTTP router
+        traefik.http.routers.lifecycle_backend_web.rule: Host(`staging.breweryda.com`) && PathPrefix(`/ciscolifecycle/api`)
+        traefik.http.routers.lifecycle_backend_web.entryPoints: web
+        traefik.http.routers.lifecycle_backend_web.service: lifecycle_backend
+        traefik.http.routers.lifecycle_backend_web.middlewares: lifecycle_backend_redirect
+    environment:
+      # change to use the variables defined in .env file to pass parameters
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - BASE_URL=${BASE_URL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - SAML_ENTRY_POINT=${SAML_ENTRY_POINT}
+      - SAML_ISSUER=${SAML_ISSUER}
+      - SAML_CALLBACK_URL=${SAML_ISSUER}
+      - CERT=${CERT}
+      - SECRET=${SECRET}
+    networks:
+      - frontend
+      - cisco_lifecycle_backend
+
+networks:
+  frontend:
+    external: true
+    name: public_frontend
+
+  cisco_lifecycle_backend:
+    external: true
+    name: cisco-lifecycle

@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16.1 
+    deploy:
+      placement:
+        constraints:
+          - "node.hostname==burrito"
+      replicas: 1
+      resources:
+        limits:
+          cpus: "4"
+          memory: "4g"
+
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+    networks:
+      - backend
+      - cisco_lifecycle_backend
+
+    ports:
+     - 5211:5432
+
+    # secrets:
+    #   - pguser
+    #   - pgpwd
+
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+
+volumes:
+  pg-data:
+    name: cisco_lifcycle_pg_data
+
+networks:
+  backend:
+    external: true
+    name: private_backend
+
+  cisco_lifecycle_backend:
+    external: true
+    name: cisco-lifecycle
+
+# secrets:
+    # pguser:
+    #   external: true
+    #   name: cisco-lifecycle-pg_usr
+     
+    # pgpwd:
+    #   external: true
+    #   name: cisco-lifecycle-pg_pwd
+      

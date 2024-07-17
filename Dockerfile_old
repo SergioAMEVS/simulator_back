@@ -1,0 +1,24 @@
+# Use a lighter version of Node as a parent image
+FROM node:18.18-alpine3.17 as build
+
+# Set the working directory in the Docker image
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install only development dependencies
+# RUN npm ci --only=production
+RUN npm install
+
+# Copy the rest of your app's source code from your host to your image filesystem.
+COPY . .
+
+# Compile TypeScript to JavaScript
+RUN npm run build
+
+# Expose port (for reference only)
+EXPOSE 8080
+
+# Run the web service on container startup
+CMD ["node", "dist/main"]
